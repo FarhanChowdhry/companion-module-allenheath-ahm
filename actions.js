@@ -294,6 +294,48 @@ export function getActions() {
 		},
 	}
 
+	actions['zone_to_zone_mute'] = {
+		name: 'Mute Zone to Zone',
+		options: this.muteOptions('Input Zone', this.numberofZones, -1).concat(
+			this.listOptions('Zone', this.numberOfZones, -1),
+		),
+		callback: (action) => {
+			let inputNumber = parseInt(action.options.mute_number)
+			let zoneNumber = parseInt(action.options.number)
+
+			let buffers = [
+				Buffer.from([
+					0xf0,
+					0x00,
+					0x00,
+					0x1a,
+					0x50,
+					0x12,
+					0x01,
+					0x00,
+					0x00,
+					0x03,
+					inputNumber,
+					0x01,
+					zoneNumber,
+					action.options.mute ? 0x7f : 0x3f,
+					0xf7,
+				]),
+			]
+			this.sendCommand(buffers)
+
+			// manually update internal state, (internal state works with user-number, hence + 1)
+			this.updateSendMuteState(
+				Constants.SendType.InputToZone,
+				inputNumber + 1,
+				zoneNumber + 1,
+				action.options.mute ? 1 : 0,
+			)
+
+			this.checkFeedbacks('zoneToZoneMute')
+		},
+	}
+
 	actions['set_level_input'] = {
 		name: 'Set Level of Input',
 		options: this.setLevelOptions('Input', this.numberOfInputs, -1),
